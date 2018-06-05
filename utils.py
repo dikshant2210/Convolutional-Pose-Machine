@@ -1,12 +1,20 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 
-heatmap_pixel_width = 15
+IMAGE_HEIGHT = 368
+IMAGE_WIDTH = 368
+NUM_CHANNELS = 3
+heatmap_pixel_width = 4
+BATCH_SIZE = 16
+EPOCHS = 5
 
 
 def gaussian_image_map(img_height, img_width, c_y, c_x, variance):
     image_map = np.zeros((img_height, img_width))
+    if c_x < 0 or c_y < 0:
+        return image_map
     for x in range(c_x - heatmap_pixel_width, c_x + heatmap_pixel_width):
         for y in range(c_y - heatmap_pixel_width, c_y + heatmap_pixel_width):
             dist_sq = (x - c_x) ** 2 + (y - c_y) ** 2
@@ -27,3 +35,12 @@ def plot_heatmap(image, heatmap):
     cv2.imshow('input', image)
     cv2.imshow('heatmap', heatmap)
     cv2.waitKey(0)
+
+
+def grid_plot(array):
+    plt.figure(figsize=(8, 8))
+    for i in range(1, array.shape[-1] + 1):
+        plt.subplot(4, 4, i)
+        plt.imshow(array[:, :, i - 1], cmap='gray', vmin=0.0, vmax=1.0)
+    plt.subplots_adjust(top=.95, bottom=0.05, left=0.10, right=0.95, hspace=0.5, wspace=0.5)
+    plt.show()
