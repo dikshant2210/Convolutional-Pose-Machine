@@ -1,8 +1,9 @@
 import dbcollection as dbc
 import cv2
 import numpy as np
-from utils import gaussian_image_map, IMAGE_WIDTH, IMAGE_HEIGHT, BATCH_SIZE, plot_heatmap
+from utils import gaussian_image_map, IMAGE_WIDTH, IMAGE_HEIGHT, BATCH_SIZE, grid_plot
 
+GRID_PLOT = False
 
 mpii = dbc.load('mpii_pose')
 filenames = mpii.get('train', 'image_filenames')
@@ -80,7 +81,8 @@ def train_generator():
                 crop_heatmap = create_heatmap(heatmap_image, person_keypoints)
                 x_batch.append(crop_image)
                 y_batch.append(crop_heatmap)
-                # plot_heatmap(heatmap_image, crop_heatmap)
+                if GRID_PLOT:
+                    grid_plot(crop_heatmap)
             x_batch = np.array(x_batch) / 255.0
             y_batch = np.array(y_batch)
             yield x_batch, y_batch

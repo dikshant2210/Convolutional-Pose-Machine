@@ -7,6 +7,9 @@ IMAGE_HEIGHT = 368
 IMAGE_WIDTH = 368
 NUM_CHANNELS = 3
 heatmap_pixel_width = 4
+decay_rate = 0.5
+decay_steps = 10000
+init_lr = 0.001
 BATCH_SIZE = 16
 EPOCHS = 5
 
@@ -15,8 +18,8 @@ def gaussian_image_map(img_height, img_width, c_y, c_x, variance):
     image_map = np.zeros((img_height, img_width))
     if c_x < 0 or c_y < 0:
         return image_map
-    for x in range(c_x - heatmap_pixel_width, c_x + heatmap_pixel_width):
-        for y in range(c_y - heatmap_pixel_width, c_y + heatmap_pixel_width):
+    for x in range(img_width):
+        for y in range(img_height):
             dist_sq = (x - c_x) ** 2 + (y - c_y) ** 2
             exponent = dist_sq / (2.0 * variance * variance)
             try:
