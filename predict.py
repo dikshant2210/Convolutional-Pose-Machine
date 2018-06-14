@@ -9,11 +9,13 @@ def predict(file_path):
     image = cv2.imread(file_path)
     image = cv2.resize(image, (368, 368))
     image = np.expand_dims(image, axis=0)
+    image = image / 255.0
 
     model = CPM(stages=3, joints=16)
+    model.build_model()
     saver = tf.train.Saver(max_to_keep=None)
     with tf.Session() as sess:
-        saver.restore(sess, save_path='model/weights/model.ckpt-3001')
+        saver.restore(sess, save_path='model/weights/model.ckpt-501')
         heatmaps = sess.run([model.heatmaps], feed_dict={model.images: image})
 
     heatmaps = np.array(heatmaps)
