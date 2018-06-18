@@ -16,7 +16,7 @@ for ind, val in enumerate(keypoint_ids_per_image):
     for _ in range(num_persons):
         file_index.append(ind)
 
-data_split_index = int(len(file_index) * 0.2)
+data_split_index = int(len(file_index) * 0.8)
 file_index = np.array(file_index)
 shuffle_indices = np.arange(len(file_index))
 np.random.shuffle(shuffle_indices)
@@ -46,46 +46,46 @@ def create_heatmap(image, person_keypoints):
 
 
 def train_generator():
-    while True:
-        for start in range(0, len(file_index[:data_split_index]), BATCH_SIZE):
-            end = min(start + BATCH_SIZE, data_split_index)
-            x_batch, y_batch = list(), list()
+    for start in range(0, len(file_index[:data_split_index]), BATCH_SIZE):
+        end = min(start + BATCH_SIZE, data_split_index)
+        x_batch, y_batch = list(), list()
 
-            for index in range(start, end):
-                image_path = ascii2str(filenames[file_index[index]])
-                person_keypoints = keypoints[index]
-                temp_keypoints = person_keypoints
+        for index in range(start, end):
+            # continue
+            image_path = ascii2str(filenames[file_index[index]])
+            person_keypoints = keypoints[index]
+            temp_keypoints = person_keypoints
 
-                image = cv2.imread(image_path)
+            image = cv2.imread(image_path)
 
-                temp_keypoints = temp_keypoints[np.where((person_keypoints[:, 2] != -1) *
-                                                         (person_keypoints[:, 0] != 0) *
-                                                         (person_keypoints[:, 1] != 0))]
-                x_start = max(min(temp_keypoints[:, 1]) - 100, 0)
-                x_end = min(max(temp_keypoints[:, 1]) + 100, image.shape[0])
-                y_start = max(min(temp_keypoints[:, 0]) - 100, 0)
-                y_end = min(max(temp_keypoints[:, 0]) + 100, image.shape[1])
+            temp_keypoints = temp_keypoints[np.where((person_keypoints[:, 2] != -1) *
+                                                     (person_keypoints[:, 0] != 0) *
+                                                     (person_keypoints[:, 1] != 0))]
+            x_start = max(min(temp_keypoints[:, 1]) - 100, 0)
+            x_end = min(max(temp_keypoints[:, 1]) + 100, image.shape[0])
+            y_start = max(min(temp_keypoints[:, 0]) - 100, 0)
+            y_end = min(max(temp_keypoints[:, 0]) + 100, image.shape[1])
 
-                x_start, x_end, y_start, y_end = int(x_start), int(x_end), int(y_start), int(y_end)
+            x_start, x_end, y_start, y_end = int(x_start), int(x_end), int(y_start), int(y_end)
 
-                person_keypoints[:, 0] = person_keypoints[:, 0] - y_start
-                person_keypoints[:, 1] = person_keypoints[:, 1] - x_start
+            person_keypoints[:, 0] = person_keypoints[:, 0] - y_start
+            person_keypoints[:, 1] = person_keypoints[:, 1] - x_start
 
-                crop_image = image[x_start:x_end, y_start:y_end, :]
-                height, width = crop_image.shape[0], crop_image.shape[1]
-                person_keypoints[:, 0] = person_keypoints[:, 0] * 46.0 / width
-                person_keypoints[:, 1] = person_keypoints[:, 1] * 46.0 / height
+            crop_image = image[x_start:x_end, y_start:y_end, :]
+            height, width = crop_image.shape[0], crop_image.shape[1]
+            person_keypoints[:, 0] = person_keypoints[:, 0] * 46.0 / width
+            person_keypoints[:, 1] = person_keypoints[:, 1] * 46.0 / height
 
-                crop_image = cv2.resize(crop_image, (IMAGE_WIDTH, IMAGE_HEIGHT))
-                heatmap_image = cv2.resize(crop_image, (46, 46))
-                crop_heatmap = create_heatmap(heatmap_image, person_keypoints)
-                x_batch.append(crop_image)
-                y_batch.append(crop_heatmap)
-                if GRID_PLOT:
-                    grid_plot(crop_heatmap)
-            x_batch = np.array(x_batch) / 255.0
-            y_batch = np.array(y_batch)
-            yield x_batch, y_batch
+            crop_image = cv2.resize(crop_image, (IMAGE_WIDTH, IMAGE_HEIGHT))
+            heatmap_image = cv2.resize(crop_image, (46, 46))
+            crop_heatmap = create_heatmap(heatmap_image, person_keypoints)
+            x_batch.append(crop_image)
+            y_batch.append(crop_heatmap)
+            if GRID_PLOT:
+                grid_plot(crop_heatmap)
+        x_batch = np.array(x_batch) / 255.0 - 0.5
+        y_batch = np.array(y_batch)
+        yield x_batch, y_batch
 
 
 def valid_generator():
@@ -132,4 +132,5 @@ def valid_generator():
 #     print(filenames.shape)
 #     print(keypoints.shape)
 #     print(keypoint_ids_per_image.shape)
-#     train_generator()
+#     print(data_split_index)
+#     print(len(file_index[:data_split_index]))

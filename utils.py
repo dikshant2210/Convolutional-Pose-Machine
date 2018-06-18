@@ -8,10 +8,11 @@ IMAGE_WIDTH = 368
 NUM_CHANNELS = 3
 heatmap_pixel_width = 4
 decay_rate = 0.5
-decay_steps = 10000
+decay_steps = 20000
 init_lr = 0.001
 BATCH_SIZE = 16
-EPOCHS = 5
+INTENSITY_THRESHOLD = 0.5
+EPOCHS = 15
 
 
 def gaussian_image_map(img_height, img_width, c_y, c_x, variance):
@@ -26,6 +27,8 @@ def gaussian_image_map(img_height, img_width, c_y, c_x, variance):
                 image_map[x, y] = np.exp(-exponent)
             except IndexError:
                 pass
+    # image_map = image_map > INTENSITY_THRESHOLD
+    # image_map = image_map.astype(np.float32)
     return image_map
 
 

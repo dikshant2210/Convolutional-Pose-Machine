@@ -155,7 +155,7 @@ class ConvolutionalPoseMachine:
                                      filters=self.joints,
                                      kernel_size=[1, 1],
                                      padding='same',
-                                     activation=tf.nn.relu,
+                                     activation=tf.nn.softmax,
                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                      name='conv2')
             self.heatmaps.append(conv2)
@@ -213,7 +213,7 @@ class ConvolutionalPoseMachine:
                                          filters=self.joints,
                                          kernel_size=[1, 1],
                                          padding='same',
-                                         activation=tf.nn.sigmoid,
+                                         activation=tf.nn.softmax,
                                          kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                          name='mid_conv7')
             self.heatmaps.append(mid_conv7)
@@ -225,6 +225,10 @@ class ConvolutionalPoseMachine:
 
         for stage in range(self.stages):
             with tf.variable_scope('stage{}_loss'.format(stage + 1)):
+                # self.stage_loss[stage] = tf.reduce_sum(
+                #     tf.nn.softmax_cross_entropy_with_logits(logits=self.heatmaps[stage],
+                #                                             labels=self.true_heatmaps,
+                #                                             name='binary_loss')) / self.batch_size
                 self.stage_loss[stage] = tf.nn.l2_loss(self.heatmaps[stage] - self.true_heatmaps,
                                                        name='l2_loss') / self.batch_size
                 tf.summary.scalar('stage{}_loss'.format(stage + 1), self.stage_loss[stage])
@@ -232,6 +236,7 @@ class ConvolutionalPoseMachine:
         with tf.variable_scope('total_loss'):
             for stage in range(self.stages):
                 self.total_loss += self.stage_loss[stage]
+            self.total_loss = self.total_loss
             tf.summary.scalar('total_loss', self.total_loss)
 
         with tf.variable_scope('train'):
